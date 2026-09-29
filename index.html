@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gestão de Microcrédito</title>
+<meta name="theme-color" content="#0f4c3a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#f2f5f3;--card:#fff;--ink:#12261f;--mut:#5d6f67;--line:#d8e0dc;--pri:#0f4c3a;--onpri:#fff;--warn:#b26a00;--bad:#b3261e;--ok:#1b7a4b;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1815;--card:#16241f;--ink:#e6f0ec;--mut:#8ea79d;--line:#2a3d36;--pri:#4fc19a;--onpri:#06231a;--warn:#e6a23c;--bad:#ff8a80;--ok:#6fd3a0}}
+:root[data-theme="dark"]{--bg:#0e1815;--card:#16241f;--ink:#e6f0ec;--mut:#8ea79d;--line:#2a3d36;--pri:#4fc19a;--onpri:#06231a;--warn:#e6a23c;--bad:#ff8a80;--ok:#6fd3a0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 Figtree,system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px 14px 90px}
+h1{font-size:22px;font-weight:800;margin:6px 0 2px}
+h2{font-size:16px;margin:18px 0 8px}
+.sub{color:var(--mut);margin:0 0 14px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px);z-index:5}
+nav button{flex:1;padding:13px 4px;border:0;background:none;color:var(--mut);font:600 13px Figtree,system-ui,sans-serif;cursor:pointer}
+nav button.on{color:var(--pri);box-shadow:inset 0 3px var(--pri)}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+@media(min-width:600px){.grid{grid-template-columns:repeat(4,1fr)}}
+.st{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px}
+.st b{display:block;font-size:19px;font-weight:800}
+.st span{color:var(--mut);font-size:12.5px}
+.st.big{grid-column:1/-1;background:var(--pri);color:var(--onpri);border:0}
+.st.big span{color:inherit;opacity:.8}.st.big b{font-size:28px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.row small,.mut{color:var(--mut)}
+form{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+form .full{grid-column:1/-1}
+label{font-size:12.5px;color:var(--mut);display:grid;gap:3px}
+input,select{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus,select:focus,button:focus-visible{outline:2px solid var(--pri);outline-offset:1px}
+.btn{padding:10px 14px;border:0;border-radius:8px;background:var(--pri);color:var(--onpri);font:600 14px Figtree,system-ui,sans-serif;cursor:pointer}
+.btn.g{background:none;color:var(--mut);border:1px solid var(--line);padding:6px 10px;font-size:12.5px}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:12px;font-weight:600;border:1px solid currentColor}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}
+.bar{height:6px;background:var(--line);border-radius:9px;overflow:hidden;margin:8px 0 4px}
+.bar i{display:block;height:100%;background:var(--pri)}
+.empty{text-align:center;color:var(--mut);padding:26px 8px}
+.sched{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.sched td,.sched th{padding:5px 4px;border-bottom:1px solid var(--line);text-align:left}
+.sched td:last-child,.sched th:last-child{text-align:right}
+.acts{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.chip{display:inline-flex;gap:6px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px 6px 4px 12px;margin-bottom:10px;font-size:13px}.chip button{border:0;background:var(--line);color:var(--ink);border-radius:99px;width:22px;height:22px;cursor:pointer}.dot{display:inline-block;width:8px;height:8px;border-radius:99px;margin-right:6px;background:var(--warn)}.dot.on{background:var(--ok)}.kv{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.kv div{background:var(--bg);border-radius:8px;padding:8px}.kv small{display:block}.kv b{font-size:15px}.sf{display:flex;gap:6px;margin-top:8px}.sf input{flex:1}
+</style>
+</head>
+<body>
+<main>
+<h1>Gestão de Microcrédito</h1>
+<p class="sub" id="sub"></p>
+<div id="app"></div>
+</main>
+<nav id="nav"></nav>
+<script>
+const KEY='microcredito_v1';
+let db={clientes:[],emprestimos:[]},tab='painel',open=null,fc=null,q='',store=null,migrated=false;
+const legacy=(()=>{try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}})();
+if(legacy)db={clientes:legacy.clientes||[],emprestimos:legacy.emprestimos||[]};
+const saveLocal=()=>{try{localStorage.setItem(KEY,JSON.stringify(db))}catch(e){}};
+const erro=e=>alert('Não foi possível gravar na base de dados ('+((e&&e.code)||'erro')+'). Só o proprietário e os editores podem gravar.');
+const put=(col,o)=>store?store.collection(col).doc(o.id).set(o).catch(erro):saveLocal();
+const del=(col,id)=>store?store.collection(col).doc(id).delete().catch(erro):saveLocal();
+const $=s=>document.querySelector(s);
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const fm=n=>new Intl.NumberFormat('pt-MZ',{style:'currency',currency:'MZN',maximumFractionDigits:0}).format(n||0);
+const today=()=>new Date().toISOString().slice(0,10);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const addM=(d,m)=>{const x=new Date(d+'T12:00:00');x.setMonth(x.getMonth()+m);return x.toISOString().slice(0,10)};
+const fd=d=>new Date(d+'T12:00:00').toLocaleDateString('pt-PT');
+const cli=id=>db.clientes.find(c=>c.id===id);
+
+function calc(l){
+  const pg=l.pagamentos||[],ref=(l.reforcos||[]).reduce((a,r)=>a+r.valor,0),P=l.valor+ref;
+  const total=P*(1+l.taxa/100*l.meses),parc=total/l.meses;
+  const pago=pg.reduce((a,p)=>a+p.valor,0),saldo=Math.max(0,total-pago);
+  const pi=Math.min(l.meses,Math.floor((pago+0.5)/parc));
+  let venc=0;for(let i=1;i<=l.meses;i++)if(addM(l.inicio,i)<=today())venc++;
+  const nAtr=saldo<0.5?0:Math.max(0,venc-pi);
+  const atraso=nAtr?Math.min(saldo,venc*parc-pago):0;
+  const prox=pi<l.meses?addM(l.inicio,pi+1):null;
+  const dias=nAtr?Math.floor((new Date(today())-new Date(prox))/864e5):0;
+  const estado=saldo<0.5?'Liquidado':nAtr?'Em atraso':'Em dia';
+  return{P,ref,total,parc,pago,saldo,atraso,nAtr,dias,estado,prox};
+}
+const cls=e=>e==='Liquidado'?'ok':e==='Em atraso'?'bad':'warn';
+const loansOf=id=>db.emprestimos.filter(l=>l.clienteId===id);
+
+function painel(){
+  let emp=0,rec=0,pen=0,atr=0,nAtr=0,ativos=0;
+  db.emprestimos.forEach(l=>{const c=calc(l);emp+=c.P;rec+=c.pago;pen+=c.saldo;if(c.estado!=='Liquidado')ativos++;if(c.nAtr){atr+=c.atraso;nAtr++}});
+  return `<div class="grid">
+  <div class="st big"><span>Total a receber</span><b>${fm(pen)}</b></div>
+  <div class="st"><span>Total emprestado</span><b>${fm(emp)}</b></div>
+  <div class="st"><span>Total recebido</span><b>${fm(rec)}</b></div>
+  <div class="st"><span>Empréstimos activos</span><b>${ativos}</b></div>
+  <div class="st"><span>Valor em atraso</span><b class="${nAtr?'bad':''}">${fm(atr)}</b></div></div>
+  <h2>Resumo</h2><div class="box row"><span>${db.clientes.length} cliente(s) registados</span><button class="btn g" onclick="go('atrasos')">${nAtr} em atraso · ver relatório</button></div>
+  <h2>Cópia de segurança</h2><div class="box"><small class="mut">Os dados ficam só neste telemóvel. Guarde uma cópia com frequência.</small><div class="acts"><button class="btn" onclick="exportar()">Exportar cópia</button><label class="btn g" style="display:inline-grid;align-content:center;cursor:pointer;color:var(--mut)">Importar cópia<input type="file" accept=".json,application/json" hidden onchange="importar(this)"></label></div></div>`;
+}
+
+function clientes(){
+  return `<form onsubmit="addCli(event)">
+  <label class="full">Nome completo<input name="nome" required></label>
+  <label>Telefone<input name="tel" inputmode="tel" placeholder="84 000 0000"></label>
+  <label>Nº do BI<input name="bi"></label>
+  <label class="full">Endereço / Bairro<input name="end"></label>
+  <button class="btn full">Guardar cliente</button></form>
+  <h2>Todos os clientes (${db.clientes.length})</h2>
+  <input type="search" placeholder="Pesquisar por nome, telefone ou BI" value="${esc(q)}" oninput="q=this.value;$('#cl').innerHTML=cliList()" style="margin-bottom:10px">
+  <div id="cl">${cliList()}</div>`;
+}
+function cliList(){
+  const s=q.trim().toLowerCase();
+  const L=db.clientes.filter(c=>!s||[c.nome,c.tel,c.bi].some(v=>String(v||'').toLowerCase().includes(s))).sort((a,b)=>a.nome.localeCompare(b.nome));
+  if(!L.length)return `<div class="empty">${db.clientes.length?'Nenhum cliente encontrado.':'Ainda sem clientes. Adicione o primeiro acima.'}</div>`;
+  return L.map(c=>{
+    const ls=loansOf(c.id).map(calc),saldo=ls.reduce((a,x)=>a+x.saldo,0),atr=ls.reduce((a,x)=>a+x.atraso,0),tot=ls.reduce((a,x)=>a+x.P,0);
+    const est=!ls.length?'Sem crédito':atr>0.5?'Em atraso':saldo>0.5?'Em dia':'Liquidado';
+    return `<div class="box"><div class="row"><div><b>${esc(c.nome)}</b><br><small>${esc(c.tel)}${c.bi?' · BI '+esc(c.bi):''}<br>${esc(c.end)}</small></div><span class="tag ${est==='Sem crédito'?'mut':cls(est)}">${est}</span></div>
+    <div class="kv"><div><small>Total emprestado</small><b>${fm(tot)}</b></div><div><small>Saldo devedor</small><b>${fm(saldo)}</b></div></div>
+    <div class="acts"><button class="btn g" onclick="verEmp('${c.id}')">Empréstimos (${ls.length})</button><button class="btn g" onclick="delCli('${c.id}')">Remover</button></div></div>`}).join('');
+}
+
+function emprestimos(){
+  const opts=db.clientes.map(c=>`<option value="${c.id}" ${c.id===fc?'selected':''}>${esc(c.nome)}</option>`).join('');
+  const form=db.clientes.length?`<form onsubmit="addEmp(event)">
+  <label class="full">Cliente<select name="c" required>${opts}</select></label>
+  <label>Valor (MZN)<input name="v" type="number" min="1" step="any" required></label>
+  <label>Juros por mês (%)<input name="t" type="number" min="0" step="any" value="20" required></label>
+  <label>Prazo (meses)<input name="m" type="number" min="1" max="60" value="3" required></label>
+  <label>Data de início<input name="d" type="date" value="${today()}" required></label>
+  <button class="btn full">Conceder empréstimo</button></form>`:'<div class="empty">Adicione um cliente antes de conceder crédito.</div>';
+  const src=db.emprestimos.filter(l=>!fc||l.clienteId===fc).slice().reverse();
+  const list=src.map(l=>{
+    const c=calc(l),p=Math.min(100,c.pago/c.total*100),isOpen=open===l.id,ativo=c.saldo>=0.5;
+    return `<div class="box"><div class="row"><div><b>${esc(cli(l.clienteId)?.nome||'—')}</b><br><small>${fm(c.P)}${c.ref?' (incl. reforços '+fm(c.ref)+')':''} · ${l.taxa}%/mês · ${l.meses} meses</small></div><span class="tag ${cls(c.estado)}">${c.estado}</span></div>
+    <div class="bar"><i style="width:${p}%"></i></div>
+    <div class="row"><small>Pago ${fm(c.pago)} de ${fm(c.total)}</small><small>Saldo <b>${fm(c.saldo)}</b></small></div>
+    <small class="mut">Prestação ${fm(c.parc)}${c.prox&&ativo?' · próxima '+fd(c.prox):''}${c.nAtr?' · <b class="bad">atraso '+fm(c.atraso)+' ('+c.dias+' dias)</b>':''}</small>
+    ${ativo?`<form onsubmit="pagar(event,'${l.id}')" style="margin:8px 0 0;grid-template-columns:1fr 1fr auto"><input name="v" type="number" min="1" step="any" placeholder="Valor pago" value="${Math.round(Math.min(c.parc,c.saldo))}" required><input name="d" type="date" value="${today()}" required><button class="btn">Receber</button></form>
+    <form onsubmit="reforcar(event,'${l.id}')" style="margin:6px 0 0;grid-template-columns:1fr auto"><input name="v" type="number" min="1" step="any" placeholder="Adicionar saldo (MZN)" required><button class="btn g">Adicionar saldo</button></form>`:''}
+    <div class="acts"><button class="btn g" onclick="tog('${l.id}')">${isOpen?'Ocultar':'Ver'} plano e histórico</button><button class="btn g" onclick="delEmp('${l.id}')">Apagar</button></div>
+    ${isOpen?plano(l,c):''}</div>`}).join('');
+  const chip=fc?`<div class="chip">Cliente: ${esc(cli(fc)?.nome||'—')} <button aria-label="Limpar filtro" onclick="fc=null;render()">×</button></div>`:'';
+  return form+`<h2>Empréstimos (${src.length})</h2>`+chip+(list||'<div class="empty">Sem empréstimos registados.</div>');
+}
+
+function plano(l,c){
+  let rows='';
+  for(let i=1;i<=l.meses;i++){const d=addM(l.inicio,i),paga=c.pago>=i*c.parc-0.5;
+    rows+=`<tr><td>${i}</td><td>${fd(d)}</td><td>${fm(c.parc)}</td><td class="${paga?'ok':d<=today()?'bad':''}">${paga?'Paga':d<=today()?'Em atraso':'Pendente'}</td></tr>`}
+  const pg=(l.pagamentos||[]).map((p,i)=>`<tr><td colspan="2">${fd(p.data)}</td><td>${fm(p.valor)}</td><td><button class="btn g" onclick="delPag('${l.id}',${i})" aria-label="Remover pagamento">×</button></td></tr>`).join('');
+  const rf=(l.reforcos||[]).map(r=>`<tr><td colspan="2">${fd(r.data)}</td><td>+${fm(r.valor)}</td><td></td></tr>`).join('');
+  return `<table class="sched"><tr><th>#</th><th>Vence</th><th>Valor</th><th>Estado</th></tr>${rows}</table>
+  ${pg?`<table class="sched"><tr><th colspan="2">Pagamentos</th><th>Valor</th><th></th></tr>${pg}</table>`:''}
+  ${rf?`<table class="sched"><tr><th colspan="2">Saldo adicionado</th><th>Valor</th><th></th></tr>${rf}</table>`:''}`;
+}
+
+function lateList(){return db.emprestimos.map(l=>({l,c:calc(l)})).filter(x=>x.c.nAtr>0).sort((a,b)=>b.c.dias-a.c.dias)}
+function atrasos(){
+  const L=lateList(),tot=L.reduce((a,x)=>a+x.c.atraso,0),sal=L.reduce((a,x)=>a+x.c.saldo,0);
+  const head=`<div class="grid"><div class="st big"><span>Total em atraso (${L.length} empréstimo${L.length===1?'':'s'})</span><b class="${L.length?'':''}">${fm(tot)}</b></div><div class="st"><span>Saldo devedor destes</span><b>${fm(sal)}</b></div><div class="st"><span>Maior atraso</span><b>${L[0]?L[0].c.dias+' dias':'—'}</b></div></div>
+  <div class="acts" style="margin:12px 0"><button class="btn" onclick="csv()" ${L.length?'':'disabled'}>Descarregar CSV</button></div>`;
+  return head+(L.length?L.map(({l,c})=>{const k=cli(l.clienteId);return `<div class="box"><div class="row"><div><b>${esc(k?.nome||'—')}</b><br><small>${esc(k?.tel||'')}</small></div><span class="tag bad">${c.dias} dias</span></div>
+  <div class="kv"><div><small>Em atraso</small><b class="bad">${fm(c.atraso)}</b></div><div><small>Saldo devedor</small><b>${fm(c.saldo)}</b></div></div>
+  <small class="mut">${c.nAtr} prestação(ões) em falta · desde ${fd(c.prox)} · prestação ${fm(c.parc)}</small>
+  <div class="acts"><button class="btn g" onclick="verEmp('${l.clienteId}')">Registar pagamento</button></div></div>`}).join(''):'<div class="empty">Sem pagamentos em atraso.</div>');
+}
+function baixar(nome,txt,tipo){const u=URL.createObjectURL(new Blob([txt],{type:tipo})),a=document.createElement('a');a.href=u;a.download=nome;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),2000)}
+function exportar(){baixar('copia-microcredito-'+today()+'.json',JSON.stringify(db),'application/json')}
+function importar(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.clientes)||!Array.isArray(d.emprestimos))throw 0;if(!confirm('Substituir todos os dados actuais pela cópia ('+d.clientes.length+' clientes, '+d.emprestimos.length+' empréstimos)?'))return;db={clientes:d.clientes,emprestimos:d.emprestimos};saveLocal();render()}catch(e){alert('Ficheiro inválido.')}};r.readAsText(f);inp.value=''}
+async function csv(){
+  const rows=[['Cliente','Telefone','Prestações em atraso','Dias de atraso','Valor em atraso (MZN)','Saldo devedor (MZN)','Em atraso desde']];
+  lateList().forEach(({l,c})=>{const k=cli(l.clienteId);rows.push([k?.nome||'',k?.tel||'',c.nAtr,c.dias,Math.round(c.atraso),Math.round(c.saldo),c.prox])});
+  const txt='\ufeff'+rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+  baixar('relatorio-atrasos-'+today()+'.csv',txt,'text/csv;charset=utf-8');
+}
+
+function render(){
+  const T={painel:['Painel',painel],clientes:['Clientes',clientes],emprestimos:['Empréstimos',emprestimos],atrasos:['Atrasos',atrasos]};
+  $('#nav').innerHTML=Object.entries(T).map(([k,v])=>`<button class="${tab===k?'on':''}" onclick="go('${k}')">${v[0]}</button>`).join('');
+  $('#sub').innerHTML=new Date().toLocaleDateString('pt-PT',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+` · <span class="dot ${store?'on':''}"></span>${store?'Base de dados ligada':'Dados só neste dispositivo'}`;
+  $('#app').innerHTML=T[tab][1]();
+}
+const go=t=>{tab=t;if(t!=='emprestimos')fc=null;render();scrollTo(0,0)};
+const verEmp=id=>{fc=id;tab='emprestimos';render();scrollTo(0,0)};
+const tog=id=>{open=open===id?null:id;render()};
+const F=e=>{e.preventDefault();return Object.fromEntries(new FormData(e.target))};
+function addCli(e){const f=F(e),c={id:uid(),nome:f.nome.trim(),tel:f.tel,bi:f.bi,end:f.end};db.clientes.push(c);put('clientes',c);render()}
+function delCli(id){if(loansOf(id).length)return alert('Este cliente tem empréstimos. Apague-os primeiro.');if(confirm('Remover cliente?')){db.clientes=db.clientes.filter(c=>c.id!==id);del('clientes',id);render()}}
+function addEmp(e){const f=F(e),l={id:uid(),clienteId:f.c,valor:+f.v,taxa:+f.t,meses:+f.m,inicio:f.d,pagamentos:[],reforcos:[]};db.emprestimos.push(l);put('emprestimos',l);render()}
+function delEmp(id){if(confirm('Apagar este empréstimo e o seu histórico?')){db.emprestimos=db.emprestimos.filter(l=>l.id!==id);del('emprestimos',id);render()}}
+const byId=id=>db.emprestimos.find(x=>x.id===id);
+function pagar(e,id){const f=F(e),l=byId(id);l.pagamentos=l.pagamentos||[];l.pagamentos.push({data:f.d,valor:+f.v});l.pagamentos.sort((a,b)=>a.data.localeCompare(b.data));put('emprestimos',l);render()}
+function reforcar(e,id){const f=F(e),l=byId(id),v=+f.v,c=calc(l);if(!confirm('Adicionar '+fm(v)+' a este empréstimo?\nO total a pagar sobe '+fm(v*l.taxa/100*l.meses+v)+' (mesmos juros e prazo).'))return;l.reforcos=l.reforcos||[];l.reforcos.push({data:today(),valor:v});put('emprestimos',l);render()}
+function delPag(id,i){const l=byId(id);l.pagamentos.splice(i,1);put('emprestimos',l);render()}
+
+const got2={c:0,e:0};
+function migrar(){
+  if(migrated)return;migrated=true;
+  if(legacy&&((legacy.clientes||[]).length||(legacy.emprestimos||[]).length)&&!got2.c&&!got2.e){
+    db={clientes:legacy.clientes||[],emprestimos:legacy.emprestimos||[]};
+    db.clientes.forEach(c=>put('clientes',c));db.emprestimos.forEach(l=>put('emprestimos',l));
+  }
+}
+function init(){render();try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{})}
+init();
+</script>
+</body>
+</html>
